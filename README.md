@@ -45,19 +45,35 @@ inside a real browser session, then exporting the result as compact JSON. Each
 file's `generatedAt` field records when it was built. The site displays this
 timestamp in the "What This Is" tab so it's never presented as live.
 
-### Refreshing the snapshot — automated
+### Refreshing the snapshot — this is a manual, on-request process
 
-`.github/workflows/refresh-data.yml` runs `scripts/refresh-data.mjs` on a
-schedule (weekly, Wednesdays) and on manual trigger (Actions tab → "Refresh
-USDA data snapshots" → Run workflow). The script drives headless Chromium via
-[Playwright](https://playwright.dev/) — not curl or Node's plain `fetch` —
-navigating to a real page on `fsis.usda.gov` first so the in-page requests to
-the ZIP/CSV files are same-origin and get past Akamai's bot blocking, exactly
-like the manual process below. If a run produces any change under `data/`, the
-workflow commits and pushes it directly (using the Action's own `GITHUB_TOKEN`,
-which needs no extra secrets), which triggers a normal Pages rebuild.
+Two automated paths were tried and both hit real, confirmed dead ends —
+documented here so nobody re-attempts them expecting a different result:
 
-Run it locally the same way:
+- **GitHub Actions** (`scripts/refresh-data.mjs` run via a scheduled workflow):
+  fails with a `403` on the ZIP fetch even through headless Chromium. GitHub's
+  shared-runner IP ranges are evidently on Akamai's bot-management blocklist —
+  this isn't a fingerprint/engine issue (real Chromium was used), it's IP
+  reputation. Deliberately routing around that (proxies, IP rotation, etc.)
+  would cross from "automating access to public data" into "evading a
+  government site's security controls," which isn't something to build.
+- **Scheduled Claude Code cloud routines**: fail even earlier — the cloud
+  sandbox's own egress proxy rejects the CONNECT tunnel to `fsis.usda.gov`
+  outright (before the request ever reaches FSIS/Akamai), for curl and for
+  headless Chromium alike. This is Anthropic's own sandbox network policy not
+  allowlisting that host, not something refresh-data.mjs or any client library
+  can work around.
+
+So for now, refreshing `data/*.json` is a deliberate, occasional action:
+
+**Easiest — ask a Claude Code session with Browser tool access to redo it.**
+That's how the current snapshot was produced, and it's the only method
+confirmed to actually reach fsis.usda.gov reliably (a real interactive browser
+session, not a datacenter-hosted automation). Just ask it to refresh the USDA
+data per the steps below.
+
+**Alternative — run `scripts/refresh-data.mjs` locally,** if you have Node.js
+and a working Playwright install on your own machine:
 
 ```bash
 npm install
@@ -65,14 +81,14 @@ npx playwright install --with-deps chromium
 npm run refresh-data
 ```
 
-**A real caveat, not a guarantee:** GitHub Actions runners are datacenter IPs,
-and Akamai's bot management could in principle flag them even though it didn't
-flag Playwright when tested manually from this machine. Check the Actions tab
-after the first scheduled run (or trigger it manually) to confirm it actually
-succeeds before assuming this is fully hands-off — if it starts failing, the
-manual steps below still work as a fallback.
+This has NOT been confirmed to work — it was never actually run successfully,
+since testing surfaced the GitHub Actions and cloud-sandbox failures above
+before a local Node environment was available to try it here. A home/office
+IP is far less likely to be on a datacenter blocklist than GitHub's or a cloud
+provider's ranges, so it may well work, but treat it as untested until you've
+actually run it once and watched `data/*.json` change.
 
-### Refreshing the snapshot — manual fallback
+### Manual refresh steps (what "ask Claude to redo it" actually does)
 
 1. Open a real browser (not curl/requests) to `https://www.fsis.usda.gov/inspection/import-export/international-reports/import-and-export-data`
    so requests are same-origin.
@@ -98,11 +114,8 @@ manual steps below still work as a fallback.
    `https://www.fsis.usda.gov/inspection/establishments/meat-poultry-and-egg-product-inspection-directory`,
    join on `establishment_number`, filter to rows with any `*beef*` column
    `=== "Yes"`, and write `domestic_establishments.json`.
-5. Replace the files in `data/`.
-
-If you have a Claude Code session with browser tool access, you can just ask it
-to redo this — that's how the current snapshot (and the automation script
-above) was originally produced.
+5. Replace the files in `data/`, commit, and push — GitHub Pages rebuilds
+   automatically.
 
 ## What this tool is not
 
