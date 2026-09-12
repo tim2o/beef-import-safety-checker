@@ -45,7 +45,9 @@
     </div>
 
     <div class="search-row">
-      <input type="file" id="photoInput" accept="image/*" capture="environment">
+      <label for="photoInput" class="file-btn">📷 Take Photo</label>
+      <input type="file" id="photoInput" accept="image/*" capture="environment" class="visually-hidden">
+      <span id="photoFileName" class="status"></span>
     </div>
     <div id="scanPreviewWrap"></div>
     <div id="scanStatus" class="status"></div>

@@ -222,16 +222,21 @@ h4{font-size:.95rem; font-weight:700; margin:0 0 8px}
 #searchBtn:hover,#scanCorrectBtn:hover{filter:brightness(1.08)}
 #searchBtn:active,#scanCorrectBtn:active{transform:translateY(1px)}
 
-input[type="file"]{
-  font-family:inherit; font-size:.92rem; color:var(--ink-soft);
-  padding:10px; border:1.5px dashed var(--border); border-radius:var(--radius-sm);
-  background:var(--surface-2); width:100%;
+.visually-hidden{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
 }
-input[type="file"]::file-selector-button{
-  background:var(--accent); color:var(--accent-ink); border:none;
-  padding:8px 16px; border-radius:var(--radius-pill); font-weight:700;
-  font-family:inherit; cursor:pointer; margin-right:12px;
+.file-btn{
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--accent); color:var(--accent-ink);
+  padding:12px 22px; border-radius:var(--radius-pill);
+  font-weight:700; font-size:.95rem; cursor:pointer;
+  box-shadow:var(--shadow-sm);
+  transition:filter .15s ease, transform .1s ease;
 }
+.file-btn:hover{filter:brightness(1.08)}
+.file-btn:active{transform:translateY(1px)}
+.file-btn:has(+ input:focus-visible){outline:2px solid var(--accent); outline-offset:2px}
 
 .status{color:var(--muted); font-style:italic; font-size:.92rem}
 

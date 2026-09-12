@@ -432,6 +432,7 @@ document.getElementById('scanCorrectInput').addEventListener('keydown', (e) => {
 document.getElementById('photoInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
+  document.getElementById('photoFileName').textContent = file.name;
 
   const previewWrap = document.getElementById('scanPreviewWrap');
   const statusEl = document.getElementById('scanStatus');
