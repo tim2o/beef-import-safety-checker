@@ -126,6 +126,7 @@ body{margin:0;background:var(--bg);color:var(--ink);line-height:1.55;-webkit-fon
   pointer-events:none;
 }
 .site-header .wrap{position:relative}
+.header-badges{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px}
 .kicker{
   display:inline-flex; align-items:center; gap:7px;
   background:rgba(255,255,255,.16);
@@ -133,8 +134,13 @@ body{margin:0;background:var(--bg);color:var(--ink);line-height:1.55;-webkit-fon
   padding:5px 13px 5px 10px;
   border-radius:var(--radius-pill);
   font-size:.76rem; font-weight:600; letter-spacing:.03em; text-transform:uppercase;
-  margin-bottom:16px;
 }
+.kicker-link{
+  color:#fff; text-decoration:none; cursor:pointer;
+  transition:background .15s ease, border-color .15s ease, transform .1s ease;
+}
+.kicker-link:hover{background:rgba(255,255,255,.28); border-color:rgba(255,255,255,.4)}
+.kicker-link:active{transform:translateY(1px)}
 .kicker .dot{
   width:6px; height:6px; border-radius:50%;
   background:#5eeaa0;
