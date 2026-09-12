@@ -1,0 +1,11 @@
+{
+  "name": "beef-import-safety-checker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "refresh-data": "node scripts/refresh-data.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.47.0"
+  }
+}

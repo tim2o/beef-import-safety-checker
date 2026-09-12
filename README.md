@@ -45,16 +45,41 @@ inside a real browser session, then exporting the result as compact JSON. Each
 file's `generatedAt` field records when it was built. The site displays this
 timestamp in the "What This Is" tab so it's never presented as live.
 
-### Refreshing the snapshot
+### Refreshing the snapshot — automated
 
-To regenerate `data/*.json` with newer USDA data:
+`.github/workflows/refresh-data.yml` runs `scripts/refresh-data.mjs` on a
+schedule (weekly, Wednesdays) and on manual trigger (Actions tab → "Refresh
+USDA data snapshots" → Run workflow). The script drives headless Chromium via
+[Playwright](https://playwright.dev/) — not curl or Node's plain `fetch` —
+navigating to a real page on `fsis.usda.gov` first so the in-page requests to
+the ZIP/CSV files are same-origin and get past Akamai's bot blocking, exactly
+like the manual process below. If a run produces any change under `data/`, the
+workflow commits and pushes it directly (using the Action's own `GITHUB_TOKEN`,
+which needs no extra secrets), which triggers a normal Pages rebuild.
+
+Run it locally the same way:
+
+```bash
+npm install
+npx playwright install --with-deps chromium
+npm run refresh-data
+```
+
+**A real caveat, not a guarantee:** GitHub Actions runners are datacenter IPs,
+and Akamai's bot management could in principle flag them even though it didn't
+flag Playwright when tested manually from this machine. Check the Actions tab
+after the first scheduled run (or trigger it manually) to confirm it actually
+succeeds before assuming this is fully hands-off — if it starts failing, the
+manual steps below still work as a fallback.
+
+### Refreshing the snapshot — manual fallback
 
 1. Open a real browser (not curl/requests) to `https://www.fsis.usda.gov/inspection/import-export/international-reports/import-and-export-data`
    so requests are same-origin.
 2. In that page's console, `fetch()` each fiscal year's ZIP
    (`FSIS_import_presented_refused_and_refusal_reason_FY20XX.zip`), unzip with
    JSZip, and parse the two CSVs inside with PapaParse.
-3. For each row where `species === "Beef"` and `refused_date !== "NULL"`, tally:
+3. For each row where `species === "Beef"`, tally:
    - `country_stats.json`: per-country counts of `presented`, `refused`,
      `labFail` (refusal reason `"Failed Laboratory Analyses"`), `admin` (every
      other reason).
@@ -68,12 +93,16 @@ To regenerate `data/*.json` with newer USDA data:
      drug-residue finding (which includes, but isn't limited to, banned
      antibiotics like chloramphenicol; USDA does not publish the specific
      compound per shipment).
-4. Replace the files in `data/` and update this README's "last refreshed" note
-   if you keep one.
+4. Separately, fetch `MPI_Directory_by_Establishment_Number.csv` and
+   `Dataset_Establishment_Demographic_Data.csv` from
+   `https://www.fsis.usda.gov/inspection/establishments/meat-poultry-and-egg-product-inspection-directory`,
+   join on `establishment_number`, filter to rows with any `*beef*` column
+   `=== "Yes"`, and write `domestic_establishments.json`.
+5. Replace the files in `data/`.
 
 If you have a Claude Code session with browser tool access, you can just ask it
-to redo this — that's how the current snapshot was produced. FSIS publishes new
-data on the third Friday of each month, so monthly refreshes are reasonable.
+to redo this — that's how the current snapshot (and the automation script
+above) was originally produced.
 
 ## What this tool is not
 

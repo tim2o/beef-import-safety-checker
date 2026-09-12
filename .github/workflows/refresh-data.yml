@@ -1,0 +1,46 @@
+name: Refresh USDA data snapshots
+
+on:
+  schedule:
+    # USDA's domestic MPI directory updates weekly (Mondays); the import
+    # refusal data updates monthly (3rd Friday). Weekly covers both without
+    # being wasteful. Cron is UTC.
+    - cron: '0 13 * * 3'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Chromium (Playwright)
+        run: npx playwright install --with-deps chromium
+
+      - name: Refresh data snapshots
+        run: npm run refresh-data
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- data/; then
+            echo "No data changes — nothing to commit."
+            exit 0
+          fi
+          git add data/
+          git commit -m "Automated: refresh USDA data snapshots
+
+          Ran on $(date -u +%Y-%m-%dT%H:%M:%SZ) via scripts/refresh-data.mjs."
+          git push
