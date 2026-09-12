@@ -72,15 +72,22 @@
 
   <section id="tab-search" class="tab-panel">
     <h2>Look up a country, establishment number, or product</h2>
+    <div class="callout">
+      <strong>Easiest way to search: the EST number.</strong> It's usually the fastest thing to actually find on
+      a package — just a few digits inside the small USDA inspection mark (look for "EST." followed by a
+      number, e.g. <em>93</em>), typically on the back near the nutrition facts panel. Since it's an exact code
+      rather than a name, it matches precisely — no guessing how a country or company name is spelled or
+      formatted in USDA's data.
+    </div>
     <p class="hint">
-      Try a country name (e.g. <em>Brazil</em>), a USDA establishment number from the inspection mark on the
-      package (e.g. <em>93</em>), or a plant name. This searches every beef establishment USDA has logged
-      shipping to a US port since FY2025 — refused <strong>and</strong> clean — plus live FSIS recalls
-      <strong>and</strong> USDA's separate directory of domestic (non-import) US plants, so a US establishment
-      number tells you where in the US it is, not just that it isn't foreign.
+      You can also search by country name (e.g. <em>Brazil</em>) or plant name (e.g. <em>Cargill</em>) if that's
+      what you have. This searches every beef establishment USDA has logged shipping to a US port since
+      FY2025 — refused <strong>and</strong> clean — plus live FSIS recalls <strong>and</strong> USDA's separate
+      directory of domestic (non-import) US plants, so a US establishment number tells you where in the US it
+      is, not just that it isn't foreign.
     </p>
     <div class="search-row">
-      <input id="searchInput" type="text" placeholder="e.g. Brazil, Argentina, 815, Cargill..." autocomplete="off">
+      <input id="searchInput" type="text" placeholder="e.g. 93, Brazil, Cargill..." autocomplete="off">
       <button id="searchBtn">Search</button>
     </div>
     <div id="searchStatus" class="status"></div>
