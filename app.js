@@ -429,6 +429,10 @@ document.getElementById('scanCorrectInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && e.target.value.trim()) runScanQuery(e.target.value);
 });
 
+document.getElementById('takePhotoBtn').addEventListener('click', () => {
+  document.getElementById('photoInput').click();
+});
+
 document.getElementById('photoInput').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
