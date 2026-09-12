@@ -137,3 +137,13 @@ python3 -m http.server 8743
 ```
 
 Then open `http://localhost:8743`.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+## Support
+
+Free to use, no ads, no account required. If it's useful to you,
+[sponsoring on GitHub](https://github.com/sponsors/tim2o) helps cover the time
+spent keeping the USDA data current.
