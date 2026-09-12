@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beef Import Safety Checker</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <h1>🥩 Beef Import Safety Checker</h1>
+    <p class="tagline">Live USDA FSIS recall &amp; border-refusal data for imported beef — searchable by country, establishment, or product.</p>
+  </div>
+</header>
+
+<nav class="tabs wrap">
+  <button class="tab-btn active" data-tab="scan">📷 Scan a Package</button>
+  <button class="tab-btn" data-tab="search">Check a Product</button>
+  <button class="tab-btn" data-tab="countries">Country Risk Overview</button>
+  <button class="tab-btn" data-tab="residue">Residue &amp; Chloramphenicol Watch</button>
+  <button class="tab-btn" data-tab="recalls">Recent Beef Recalls</button>
+  <button class="tab-btn" data-tab="about">What This Is (and Isn't)</button>
+</nav>
+
+<main class="wrap">
+
+  <section id="tab-scan" class="tab-panel active">
+    <h2>Scan a package photo</h2>
+    <p class="hint">
+      Take or upload a photo of the label. This runs text recognition <strong>entirely in your browser</strong> —
+      the photo is never uploaded anywhere — and looks for a country-of-origin claim, a USDA establishment
+      ("EST.") number, and any brand name that matches our USDA refusal/recall data.
+    </p>
+    <div class="callout">
+      <strong>Best shot to take:</strong> the USDA inspection legend (the small circular/oval mark that reads
+      "U.S. INSPECTED AND PASSED..." with an "EST." number) is usually printed on the <u>back</u> of the
+      package near the nutrition facts panel — not the front. If a front-of-pack photo doesn't turn up an EST
+      number, try the back too. A straight-on, well-lit, close-up shot of the small print works best; blurry or
+      angled photos will OCR poorly.
+    </div>
+
+    <div class="search-row">
+      <input type="file" id="photoInput" accept="image/*" capture="environment">
+    </div>
+    <div id="scanPreviewWrap"></div>
+    <div id="scanStatus" class="status"></div>
+    <div id="scanSignals"></div>
+
+    <div id="scanCorrectWrap" hidden class="callout">
+      <strong>OCR got it wrong?</strong> Small stamped/embossed EST marks are the hardest thing for text
+      recognition to read accurately — it's easy for it to confuse a digit or a letter. If the number or
+      country above doesn't match what you can see on the package, fix it here and search again:
+      <div class="search-row">
+        <input type="text" id="scanCorrectInput" placeholder="Type the correct EST number or country">
+        <button id="scanCorrectBtn">Search</button>
+      </div>
+    </div>
+
+    <details id="scanRawWrap" hidden>
+      <summary>Raw extracted text (for checking OCR accuracy)</summary>
+      <pre id="scanRawText" class="raw-text"></pre>
+    </details>
+    <div id="scanResults"></div>
+  </section>
+
+  <section id="tab-search" class="tab-panel">
+    <h2>Look up a country, establishment number, or product</h2>
+    <p class="hint">
+      Try a country name (e.g. <em>Brazil</em>), a USDA establishment number from the inspection mark on the
+      package (e.g. <em>93</em>), or a plant name. This searches every beef establishment USDA has logged
+      shipping to a US port since FY2025 — refused <strong>and</strong> clean — plus live FSIS recalls
+      <strong>and</strong> USDA's separate directory of domestic (non-import) US plants, so a US establishment
+      number tells you where in the US it is, not just that it isn't foreign.
+    </p>
+    <div class="search-row">
+      <input id="searchInput" type="text" placeholder="e.g. Brazil, Argentina, 815, Cargill..." autocomplete="off">
+      <button id="searchBtn">Search</button>
+    </div>
+    <div id="searchStatus" class="status"></div>
+    <div id="searchResults"></div>
+  </section>
+
+  <section id="tab-countries" class="tab-panel">
+    <h2>Beef import refusal rates by country of origin</h2>
+    <p class="hint">
+      Every beef lot presented for entry at a US port must pass FSIS reinspection. This table shows, per
+      country, how many beef lots were presented vs. refused (for <strong>any</strong> reason — shipping damage,
+      paperwork, or lab findings) in the current dataset. A high refusal rate is not proof of unsafe meat; it's
+      a transparency signal worth knowing before assuming all imported beef is treated identically.
+    </p>
+    <div id="countryTableWrap"><p class="status">Loading USDA data…</p></div>
+  </section>
+
+  <section id="tab-residue" class="tab-panel">
+    <h2>Residue &amp; chloramphenicol watch</h2>
+    <div class="callout">
+      <strong>Important limitation, stated plainly:</strong> FSIS's public shipment-level refusal data does
+      <u>not</u> name the specific chemical found in a rejected lot. Refusals tied to chemical or drug residues
+      are lumped into one public category, <code>“Failed Laboratory Analyses”</code>, alongside pathogen
+      findings. There is no public, real-time, per-shipment feed of "this lot tested positive for
+      chloramphenicol." Anyone who tells you otherwise is overstating what the data supports.
+    </div>
+
+    <h3>What we can show you</h3>
+    <ul id="labFailList" class="lab-fail-list"><li class="status">Loading…</li></ul>
+
+    <h3>Documented chloramphenicol incidents (curated, not live)</h3>
+    <div class="incident-card">
+      <p><strong>August 2026 — China rejects Argentine beef shipment.</strong> Chinese customs inspectors
+      refused a 22-ton shipment of Argentine beef after detecting chloramphenicol, an antibiotic with zero
+      legal tolerance in food-producing animals under both Chinese and US standards. This shipment was bound
+      for China, not the US, but it's the clearest recent evidence that chloramphenicol contamination is an
+      active risk in South American beef supply chains that also export to the US under the 2026 tariff-free
+      import expansion.</p>
+      <p class="src">Source: news reporting, Aug 2026 (see chat citations). Not an FSIS record.</p>
+    </div>
+
+    <h3>Where to find real per-compound residue data</h3>
+    <p>
+      FSIS's <strong>National Residue Program</strong> publishes an annual report that <em>does</em> break down
+      confirmed violations by specific compound (including chloramphenicol) and by country — just not at
+      shipment-level granularity, and not in real time. If you want to check historical rates of chloramphenicol
+      or other banned-drug violations by exporting country, that report is the authoritative source:
+    </p>
+    <p><a href="https://www.fsis.usda.gov/policy/fsis-directives/10800.1" target="_blank" rel="noopener">FSIS National Residue Program directive &amp; reports ↗</a></p>
+  </section>
+
+  <section id="tab-recalls" class="tab-panel">
+    <h2>Recent beef recalls (live FSIS data)</h2>
+    <div class="search-row">
+      <input id="recallSearch" type="text" placeholder="Filter by keyword, country, company...">
+    </div>
+    <div id="recallResults"><p class="status">Loading live recall feed…</p></div>
+  </section>
+
+  <section id="tab-about" class="tab-panel">
+    <h2>What this tool actually does</h2>
+    <div class="about-grid">
+      <div>
+        <h3>✅ What's real and live</h3>
+        <ul>
+          <li>FSIS's public Recall &amp; Public Health Alert API — fetched live, every time you load this page.</li>
+          <li>FSIS's official "Import Presented &amp; Refused" and "Import Refusal Reason" datasets — lot-level
+          records of every meat shipment refused entry at a US port, published monthly by USDA.</li>
+          <li>Country-level refusal-rate statistics computed directly from that USDA data.</li>
+          <li>The "Scan a Package" photo reader — runs a real OCR (optical character recognition) engine
+          entirely in your browser to pull text off a label photo, then matches whatever it finds against the
+          data above.</li>
+          <li>USDA's domestic Meat, Poultry &amp; Egg Product Inspection (MPI) Directory — a completely
+          separate dataset from the import data, covering ~3,000 US beef establishments with their real
+          address (city, state, county). This is what lets a search tell you a plant is domestic, and where
+          it is, instead of just failing to find it in the import records.</li>
+        </ul>
+        <h3>❌ What it can't do</h3>
+        <ul>
+          <li>It cannot test a specific package of meat in your fridge for contamination — that requires a lab.</li>
+          <li>It cannot tell you the specific chemical behind a "Failed Laboratory Analyses" refusal — USDA
+          doesn't publish that per-shipment.</li>
+          <li>It cannot verify "Product of USA" label claims — repackaging loopholes mean a US-labeled product
+          can legally contain imported meat. The USDA establishment (EST) number on the package tells you the
+          <em>domestic processing plant</em>, not necessarily the country the animal came from.</li>
+          <li>The photo scanner cannot verify a label is genuine or accurate — it only reads printed text and
+          reports what it found. OCR also makes mistakes (glare, curved packaging, small print, stylized fonts),
+          so always sanity-check a scan result against the raw extracted text shown after each scan.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>How to read the inspection mark</h3>
+        <p>Look for the USDA circular inspection legend on the package. The number after "EST." is the
+        establishment number of the plant that last processed/packed the product in the US — search it above,
+        or scan a photo of it, to see if that plant shows up in any refusal or recall record. This mark is
+        usually on the back of the package, near the nutrition facts panel, not the front.</p>
+        <h3>Data sources</h3>
+        <ul>
+          <li><a href="https://www.fsis.usda.gov/science-data/developer-resources/recall-api" target="_blank" rel="noopener">FSIS Recall API</a></li>
+          <li><a href="https://www.fsis.usda.gov/inspection/import-export/international-reports/import-and-export-data" target="_blank" rel="noopener">FSIS Import Presented/Refused Data</a></li>
+        </ul>
+        <p id="dataFreshness" class="status"></p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer wrap">
+  <p>Not affiliated with USDA or FSIS. Built on public USDA data. This tool flags official government records —
+  it is not a laboratory test and is not a substitute for food-safety judgment. When in doubt, cook beef to a
+  safe internal temperature and check FSIS.gov directly for the latest recalls.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
